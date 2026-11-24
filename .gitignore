@@ -1,0 +1,13 @@
+# Secrets: never commit real keys.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Build output and local state.
+.mda/
+.venv/
+__pycache__/
+.ruff_cache/
+.DS_Store
