@@ -24,11 +24,13 @@ Each is a few lines on top of an MDA primitive, so keep what you need and delete
 
 ## Quickstart
 
-You need [uv](https://docs.astral.sh/uv/), a LangSmith workspace with Managed Deep Agents, an
-Anthropic provider secret in its [LLM Gateway](https://docs.langchain.com/langsmith/llm-gateway)
-settings, and a Slack workspace where you can approve an app. A
+You need [uv](https://docs.astral.sh/uv/), a LangSmith workspace with Managed Deep Agents, a
+model, and a Slack workspace where you can approve an app. For the model, either add an
+Anthropic provider secret to the workspace's
+[LLM Gateway](https://docs.langchain.com/langsmith/llm-gateway) settings (the default) or use
+your own Anthropic or OpenAI key (see `.env.example`). A
 [Tool Gateway](https://docs.langchain.com/langsmith/tool-gateway) kit (LangSmith → Tools) is
-recommended: without one, the agent can't reach anyone's apps.
+recommended: without one, the agent has no integrations.
 
 1. Clone and configure:
 
@@ -40,8 +42,9 @@ cp .env.example .env
 ```
 
 Set `LANGSMITH_API_KEY`, and `TOOLS_MCP_URL` to your kit's MCP URL (LangSmith → Tools → your
-kit). Set `LANGSMITH_WORKSPACE_ID` too if your key is organization-scoped. The agent runs
-Claude Opus 5.5 through the LLM Gateway, so no other key is needed.
+kit). Set `LANGSMITH_WORKSPACE_ID` too if your key is organization-scoped. By default the agent
+runs Claude Opus 5.5 through the LLM Gateway, so no other key is needed; to use your own
+provider key instead, set `AGENT_MODEL` and that key.
 
 2. Deploy:
 
@@ -115,7 +118,7 @@ becomes a buffered note that dreaming files into memory.
 
 - **[Memory](https://docs.langchain.com/langsmith/python/managed-deep-agents-memory)** (`/memories/user/`) loads only in that person's DMs.
 - **[Schedules](https://docs.langchain.com/langsmith/python/managed-deep-agents-schedules)** run as the person and only they can see or cancel them. Check-ins asked for in a shared channel belong to the agent instead, so anyone there can see or cancel them.
-- **Apps** use the accounts that person connected, and their [browser](https://docs.langchain.com/langsmith/python/managed-deep-agents-browser-use) keeps their logins.
+- **Integrations** use the accounts that person connected, and their [browser](https://docs.langchain.com/langsmith/python/managed-deep-agents-browser-use) keeps their logins.
 
 ### Heartbeat and dreaming
 
@@ -193,6 +196,8 @@ with the conversation so far.
   logins and a teammate's permissions, not an admin's.
 - **Model:** set `AGENT_MODEL` and that provider's key in `.env` to skip the gateway (see
   `.env.example`).
+- **Dreaming time:** it runs at 02:00 America/Los_Angeles for everyone; change the cron and
+  timezone in `dreaming.py`.
 - **[Local development](https://docs.langchain.com/langsmith/python/managed-deep-agents-local-development):**
   `uv run mda dev` runs it with LangSmith Studio.
 
