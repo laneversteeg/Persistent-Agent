@@ -17,7 +17,7 @@ Features include:
 - **Playbooks** — Morning Brief, Weekly Planner and Watchlist, run once or on a schedule
 - **Watch mode** — in channels it reads everything and speaks up only when it can help
 - **Background work** — research and review subagents run while the conversation continues
-- **Your apps** — Google, Slack, Linear, GitHub and more through Tool Gateway, always as you
+- **Integrations** — Google, Slack, Linear, GitHub and more through Tool Gateway
 - **A browser per person** — it works on websites and hands you the browser when it needs you
 
 Each is a few lines on top of an MDA primitive, so keep what you need and delete the rest.
