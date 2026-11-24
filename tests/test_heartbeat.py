@@ -7,7 +7,11 @@ from unittest.mock import AsyncMock, patch
 
 from langchain_core.runnables import RunnableLambda
 
-from heartbeat import DREAM_PROMPT, HEARTBEAT_PROMPT, ensure_personal_schedules
+from dreaming import DREAM_PROMPT, DREAMING
+from heartbeat import HEARTBEAT, HEARTBEAT_PROMPT
+from middleware.per_user_schedules import PerUserSchedulesMiddleware
+
+ensure_personal_schedules = PerUserSchedulesMiddleware(schedules=[HEARTBEAT, DREAMING])
 
 
 class Schedules:

@@ -186,7 +186,7 @@ All of this relies on private delivery hooks in `managed-deepagents==0.10.5` (`_
 
 **Goals and heartbeat.** Goals are outcomes with a finish line, such as getting a meeting scheduled. Each lives in `/memories/user/goals/<slug>.md`, with status (`active`, `paused`, `completed`, `abandoned`), created/updated dates, desired outcome, source conversation and constraints, current state, next step and last heartbeat. An optional `next_check` timestamp defers checks. Waiting on someone stays active; paused goals are skipped. Daily briefs and other recurring jobs remain separate scheduled tasks, not goals.
 
-On the first authenticated Slack DM, `heartbeat.py` middleware creates a user-owned hourly heartbeat and daily dreaming schedule before the model runs. Human DM turns check both exist, paging through schedules, serializing setup per person within a process and reconciling duplicates of each kind. Heartbeats use `new_thread=False`: all of that person's DM messages and heartbeat ticks share the canonical DM agent thread, with their own memory and tool access. Heartbeat results post at the DM's top level, even after a threaded human reply. Dreaming runs in separate threads and stays quiet.
+On the first authenticated Slack DM, the `PerUserSchedulesMiddleware` (`middleware/per_user_schedules.py`, with `heartbeat.py` and `dreaming.py` listed in `agent.py`) creates a user-owned hourly heartbeat and daily dreaming schedule before the model runs: just in time, since each must run as its person. Human DM turns check both exist, paging through schedules once, serializing setup per person within a process and reconciling duplicates of each kind. Heartbeats use `new_thread=False`: all of that person's DM messages and heartbeat ticks share the canonical DM agent thread, with their own memory and tool access. Heartbeat results post at the DM's top level, even after a threaded human reply. Dreaming runs in separate threads and stays quiet.
 
 Background schedules are created only when missing and are otherwise left as they are, including paused ones. Scheduled runs never create schedules. Each heartbeat follows the goals skill, checks active goals, advances work within existing approvals, updates records and reports only meaningful progress or blockers. Nothing useful to report means `[quiet]`. No goal gets its own polling schedule.
 
@@ -198,8 +198,9 @@ The schedule API has no atomic unique-create operation: simultaneous setup acros
 
 | Path | What it is |
 |---|---|
-| [`agent.py`](agent.py) | The model, the tools, and the `clone`, `researcher` and `reviewer` subagents. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-agent-definition) |
-| [`heartbeat.py`](heartbeat.py) | Before-agent middleware that ensures a personal hourly heartbeat and daily dreaming. |
+| [`agent.py`](agent.py) | The model, the tools, the `clone`, `researcher` and `reviewer` subagents, and which schedules every person gets. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-agent-definition) |
+| [`heartbeat.py`](heartbeat.py), [`dreaming.py`](dreaming.py) | Each person's hourly heartbeat and nightly dreaming: prompt and timing. |
+| [`middleware/per_user_schedules.py`](middleware/per_user_schedules.py) | Middleware that gives each person their own schedules on their DM and removes duplicates. `agent.py` lists which. |
 | [`slack_conversation.py`](slack_conversation.py) | Continuous DM routing, top-level heartbeat delivery, and browser and connect-app links in Slack. |
 | [`instructions.md`](instructions.md) | The system prompt, one section per pattern. Start here to change how it behaves. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-instructions) |
 | [`memory.py`](memory.py) | Personal memory, mounted only in one-on-one conversations. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-memory) |
