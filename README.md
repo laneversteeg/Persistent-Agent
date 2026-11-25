@@ -36,7 +36,7 @@ it can run in the background to take work off your plate. Built on
 **You'll need:**
 
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) (it installs the right Python for you)
-- A LangSmith workspace on a Plus or Enterprise plan
+- A [LangSmith](https://smith.langchain.com) workspace on a Plus or Enterprise plan
 - A model: an [Anthropic](https://console.anthropic.com/settings/keys) or
   [OpenAI](https://platform.openai.com/api-keys) API key, or the
   [LangSmith LLM Gateway](#optional-use-the-llm-gateway)
