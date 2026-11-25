@@ -59,7 +59,7 @@ added through code review.
 - **Watch mode:** in channels it hears every message. Set `trigger_mode="mention"` in
   `channels/slack.py` to answer only mentions.
 - **Reactions:** each message gets an emoji a small, fast model picks (Haiku by default;
-  set `REACTION_MODEL` to change it), or none. It runs alongside the reply, so it never
+  set `REACTION_MODEL` to change it), 👀 if unsure. It runs alongside the reply, so it never
   slows it down. Change the prompt in `channels/slack.py`, or pass `reactions=False` to
   turn them off.
 - **Continuous DMs:** messages and thread replies in a DM share one conversation. Answers post at

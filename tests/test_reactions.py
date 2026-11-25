@@ -18,19 +18,17 @@ def pick(answer: str) -> str | None:
 
 
 class ChooseReaction(unittest.TestCase):
-    def test_uses_the_models_emoji(self):
-        self.assertEqual(pick("squirrel"), "squirrel")
+    def test_uses_slacks_name_for_the_emoji(self):
+        self.assertEqual(pick("🤔"), "thinking_face")
+        self.assertEqual(pick("🪀"), "yo-yo")
+        self.assertEqual(pick("👍"), "+1")
 
-    def test_strips_colons_space_and_case(self):
-        self.assertEqual(pick(" :Melting_Face: \n"), "melting_face")
+    def test_ignores_space_and_variation_selectors(self):
+        self.assertEqual(pick(" 🐿️\n"), "chipmunk")
 
-    def test_none_skips_the_reaction(self):
-        self.assertIsNone(pick("none"))
-
-    def test_anything_but_a_name_skips_the_reaction(self):
-        self.assertIsNone(pick("🔥"))
-        self.assertIsNone(pick("I'd go with fire"))
-        self.assertIsNone(pick(""))
+    def test_anything_else_is_eyes(self):
+        for answer in ("thinking", "none", "I'd go with 🔥", ""):
+            self.assertEqual(pick(answer), "eyes")
 
 
 class ReactionModel(unittest.TestCase):
@@ -38,8 +36,12 @@ class ReactionModel(unittest.TestCase):
         with patch.dict(os.environ, env, clear=True):
             return slack.reaction_model()
 
-    def test_haiku_on_the_gateway_by_default(self):
-        self.assertEqual(self.model(), slack.HAIKU["langsmith"])
+    def test_haiku_from_anthropic_by_default(self):
+        self.assertEqual(self.model(), slack.HAIKU["anthropic"])
+
+    def test_haiku_on_the_gateway(self):
+        agent = "langsmith:anthropic/claude-opus-5-5"
+        self.assertEqual(self.model(AGENT_MODEL=agent), slack.HAIKU["langsmith"])
 
     def test_haiku_from_anthropic_directly(self):
         self.assertEqual(

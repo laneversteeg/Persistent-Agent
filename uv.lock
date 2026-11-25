@@ -419,6 +419,15 @@ wheels = [
 ]
 
 [[package]]
+name = "emoji-data-python"
+version = "1.6.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/04/10/4ec0aca3db86080b268e8a24a50ceda2c620d1614e0e2c3ee0473ae9d5f9/emoji_data_python-1.6.0.tar.gz", hash = "sha256:6be6738f368c827648da93fbedf08116c3d317d338a55409f74e7d759fa0e354", size = 112924, upload-time = "2024-07-23T08:28:12.037Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c3/ff/f55eb9f141ccff4f8217d706b11f74e2ad648595ccd07b155540b867b242/emoji_data_python-1.6.0-py3-none-any.whl", hash = "sha256:52b2af793e9431d955ea765ec6b95a0eaba1d17572307c86f96948e5bd0aca82", size = 119616, upload-time = "2024-07-23T08:28:10.813Z" },
+]
+
+[[package]]
 name = "filetype"
 version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1041,6 +1050,7 @@ name = "persistent-agent"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "emoji-data-python" },
     { name = "httpx" },
     { name = "langchain-anthropic" },
     { name = "langchain-openai" },
@@ -1054,6 +1064,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "emoji-data-python", specifier = ">=1.6.0" },
     { name = "httpx" },
     { name = "langchain-anthropic" },
     { name = "langchain-openai" },

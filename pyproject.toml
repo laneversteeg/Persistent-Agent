@@ -8,6 +8,7 @@ dependencies = [
     "langchain-openai",  # also runs langsmith: (LLM Gateway) models
     "langchain-anthropic",
     "httpx",
+    "emoji-data-python>=1.6.0",
 ]
 
 [dependency-groups]
