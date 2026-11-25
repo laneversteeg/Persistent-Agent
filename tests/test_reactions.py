@@ -38,16 +38,19 @@ class ReactionModel(unittest.TestCase):
         with patch.dict(os.environ, env, clear=True):
             return slack.reaction_model()
 
-    def test_haiku_by_default(self):
-        self.assertEqual(self.model(), slack.HAIKU)
+    def test_haiku_on_the_gateway_by_default(self):
+        self.assertEqual(self.model(), slack.HAIKU["langsmith"])
 
-    def test_haiku_when_the_agent_uses_the_gateway(self):
-        agent = "langsmith:anthropic/claude-opus-5-5"
-        self.assertEqual(self.model(AGENT_MODEL=agent), slack.HAIKU)
+    def test_haiku_from_anthropic_directly(self):
+        self.assertEqual(
+            self.model(AGENT_MODEL="anthropic:claude-opus-5-5"),
+            slack.HAIKU["anthropic"],
+        )
 
-    def test_the_agents_model_when_it_skips_the_gateway(self):
-        agent = "anthropic:claude-opus-5-5"
-        self.assertEqual(self.model(AGENT_MODEL=agent), agent)
+    def test_another_providers_model_reacts_with_itself(self):
+        self.assertEqual(
+            self.model(AGENT_MODEL="openai:gpt-6.2-sol"), "openai:gpt-6.2-sol"
+        )
 
     def test_reaction_model_overrides(self):
         env = {
