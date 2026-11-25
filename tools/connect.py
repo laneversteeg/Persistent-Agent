@@ -5,9 +5,6 @@ calls Tool Gateway for their tools: the deployment's key and X-LangSmith-Identit
 links come back to the model, so it can put them in its reply without pausing the run.
 Only in the person's one-on-one DM: a link connects whoever opens it as this person.
 
-Not public yet: the caller's Tool Gateway headers. Pinned with managed-deepagents in
-pyproject.toml; check them on upgrade.
-
 Docs: https://docs.langchain.com/langsmith/tool-gateway-call-tools#connect-when-a-call-asks
 """
 
