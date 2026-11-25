@@ -33,15 +33,19 @@ it can run in the background to take work off your plate. Built on
 
 ## Quickstart
 
-You need [GitHub SSH access](https://docs.github.com/en/authentication/connecting-to-github-with-ssh),
-[uv](https://docs.astral.sh/uv/getting-started/installation/), Python 3.11+, a LangSmith Plus or Enterprise workspace with Managed Deep Agents and Workspace Admin access,
-an [Anthropic API key](https://console.anthropic.com/settings/keys) with API billing enabled,
-and permission to install an app in Slack. This setup uses **Claude Opus directly**.
+**You'll need:**
+
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) (it installs the right Python for you)
+- A LangSmith workspace on a Plus or Enterprise plan
+- A model: an [Anthropic](https://console.anthropic.com/settings/keys) or
+  [OpenAI](https://platform.openai.com/api-keys) API key, or the
+  [LangSmith LLM Gateway](#optional-use-the-llm-gateway)
+- A Slack workspace where you can install apps
 
 ### 1. Clone and install
 
 ```bash
-git clone git@github.com:langchain-samples/Persistent-Agent.git
+git clone https://github.com/langchain-samples/Persistent-Agent.git
 cd Persistent-Agent
 uv sync
 cp .env.example .env
@@ -474,8 +478,6 @@ See [gateway setup](https://docs.langchain.com/langsmith/llm-gateway-admin-setup
 
 | What you see | What to check |
 |---|---|
-| `Host key verification failed` while cloning | Complete [GitHub’s SSH connection check](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/testing-your-ssh-connection), verifying its published host fingerprint, or use the HTTPS clone command below. |
-| `Permission denied (publickey)` while cloning | [Add an SSH key to GitHub](https://docs.github.com/en/authentication/connecting-to-github-with-ssh). If you prefer HTTPS, use `git clone https://github.com/langchain-samples/Persistent-Agent.git`. |
 | No **Tools** page or workspace kit creation unavailable | Check the LangSmith plan, supported region, selected workspace, and Workspace Admin access. See [Tool Gateway availability](https://docs.langchain.com/langsmith/tool-gateway). |
 | No tools in the kit picker | Connect the server as **You** first. Check the **Workspace/Personal** scope and server filter, then reopen the editor. A registered OAuth server alone is not a connected account. |
 | “Tool preview is unavailable” | Finish the provider's **Connect** flow, wait for success, and return to LangSmith. |
