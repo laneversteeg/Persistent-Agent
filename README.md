@@ -1,257 +1,530 @@
-# Persistent Agent
+<div align="center">
+  <img alt="Persistent Agent" src="channels/assets/icon.png" width="120">
+  <h1>Persistent Agent</h1>
+  <h3>An always-on assistant for your whole team, in one Slack bot.</h3>
+</div>
 
-**An always-on assistant for your whole team, in one Slack bot.**
+<div align="center">
+  <a href="https://opensource.org/licenses/MIT" target="_blank"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
+  <a href="https://docs.langchain.com/langsmith/python/managed-deep-agents-overview" target="_blank"><img src="https://img.shields.io/badge/Built%20on-Managed%20Deep%20Agents-blue" alt="Built on Managed Deep Agents"></a>
+  <a href="https://x.com/langchain" target="_blank"><img src="https://img.shields.io/twitter/url/https/twitter.com/langchain.svg?style=social&label=Follow%20%40LangChain" alt="Twitter / X"></a>
+</div>
 
-Install it once and everyone talks to the same bot, but each person gets their own assistant:
-it remembers what they've told it, runs their recurring work on their schedule, follows up on
-their goals until they're done, and uses the apps they've connected. It keeps working when nobody
-is talking to it. Built on
+<br>
+
+Persistent Agent is a team assistant that keeps working after the conversation ends. Everyone
+talks to the same bot, but each person gets their own assistant: it remembers what they told it,
+follows up on their goals, runs their recurring work and uses the apps they connected. Built on
 [Managed Deep Agents](https://docs.langchain.com/langsmith/python/managed-deep-agents-overview)
 (MDA).
 
-Features include:
+**Features include:**
 
-- **Personal memory** — preferences, decisions and notes, private to each person's DM
-- **Goals that follow through** — an hourly heartbeat advances each person's goals until they're done
-- **Dreaming** — every night, each person's notes are consolidated into long-term memory
-- **Playbooks** — Morning Brief, Weekly Planner and Watchlist, run once or on a schedule
-- **Watch mode** — in channels it reads everything and speaks up only when it can help
-- **Background work** — research and review subagents run while the conversation continues
-- **Integrations** — Google, Slack, Linear, GitHub and more through Tool Gateway
-- **A browser per person** — it works on websites and hands you the browser when it needs you
-
-Each is a few lines on top of an MDA primitive, so keep what you need and delete the rest.
+- **Personal memory**: preferences and decisions, private to each person's DM
+- **Goals that follow through**: an hourly heartbeat moves each goal forward until it's done
+- **Dreaming**: every night, the day's notes become long-term memory
+- **Playbooks**: Morning Brief, Weekly Planner and Watchlist, once or on a schedule
+- **Watch mode**: in channels it reads everything and speaks up only when it can help
+- **Background work**: research and review subagents run while you keep talking
+- **Integrations**: Google, Slack, Linear, GitHub and more through Tool Gateway
+- **A browser per person**: it works on websites and hands you the browser when it needs you
 
 ## Quickstart
 
-You need [uv](https://docs.astral.sh/uv/), a LangSmith workspace with Managed Deep Agents, a
-model, and a Slack workspace where you can approve an app. For the model, either add an
-Anthropic provider secret to the workspace's
-[LLM Gateway](https://docs.langchain.com/langsmith/llm-gateway) settings (the default) or use
-your own Anthropic or OpenAI key (see `.env.example`). A
-[Tool Gateway](https://docs.langchain.com/langsmith/tool-gateway) kit (LangSmith → Tools) is
-recommended: without one, the agent has no integrations.
+You need [GitHub SSH access](https://docs.github.com/en/authentication/connecting-to-github-with-ssh),
+[uv](https://docs.astral.sh/uv/getting-started/installation/), Python 3.11+, a LangSmith Plus or Enterprise workspace with Managed Deep Agents and Workspace Admin access,
+an [Anthropic API key](https://console.anthropic.com/settings/keys) with API billing enabled,
+and permission to install an app in Slack. This setup uses **Claude Opus directly**.
 
-1. Clone and configure:
+### 1. Clone and install
 
 ```bash
-git clone https://github.com/langchain-samples/Persistent-Agent.git
+git clone git@github.com:langchain-samples/Persistent-Agent.git
 cd Persistent-Agent
 uv sync
 cp .env.example .env
 ```
 
-Set `LANGSMITH_API_KEY`, and `TOOLS_MCP_URL` to your kit's MCP URL (LangSmith → Tools → your
-kit). Set `LANGSMITH_WORKSPACE_ID` too if your key is organization-scoped. By default the agent
-runs Claude Opus 5.5 through the LLM Gateway, so no other key is needed; to use your own
-provider key instead, set `AGENT_MODEL` and that key.
+### 2. Get a key and connect tools
 
-2. Deploy:
+- **Get a LangSmith API key and workspace ID.** [Step-by-step instructions →](#langsmith-api-key-and-workspace)
+- **Connect built-in tools such as Slack and copy your tool kit's MCP URL.** [Step-by-step instructions →](#tool-server-setup)
+
+### 3. Fill in `.env`
+
+Replace the example values in `.env` with your own:
+
+```dotenv
+LANGSMITH_API_KEY=<your-langsmith-personal-access-token>
+LANGSMITH_WORKSPACE_ID=<your-workspace-id>
+AGENT_MODEL=anthropic:claude-opus-5-5
+ANTHROPIC_API_KEY=<your-anthropic-api-key>
+TOOLS_MCP_URL=<your-tool-kit-mcp-url>
+```
+
+Keep `.env` private and leave `TOOLS_PROFILE` unset so each person uses their own app accounts.
+
+### 4. Deploy and open Slack
 
 ```bash
 uv run mda deploy
 ```
 
-3. Open the Slack link the first deploy prints and approve the app. The bot appears as
-   `persistent-agent`.
+Open the Slack authorization link if prompted, approve the app, then return to the terminal
+and press **Enter**. When deployment finishes, DM the bot **“hi”** and follow any app
+connection prompts. [Slack setup and first-run checks →](#deploy-and-connect-slack)
 
-4. DM it "hi". Then ask something that needs one of your apps, like "what's on my calendar
-   today?". The first time, it posts a link to connect that app.
+---
 
-To change it later, edit the files and deploy again. See the
-[CLI reference](https://docs.langchain.com/langsmith/python/managed-deep-agents-cli) for logs and
-other commands.
+## Detailed setup
+
+- [LangSmith API key and workspace](#langsmith-api-key-and-workspace)
+- [Tool Server: add a server, connect an account, create a kit, copy its URL](#tool-server-setup)
+- [Deploy and connect Slack](#deploy-and-connect-slack)
+- [Model options, including the optional LLM Gateway](#model-options)
+- [Troubleshooting](#setup-troubleshooting)
+
+Screenshots below show the LangSmith UI captured on November 25, 2026. They are cropped to
+focus on the relevant controls. Names such as **Demo Workspace** are examples; use your own
+workspace throughout.
+
+## LangSmith API key and workspace
+
+There are three different kinds of access involved. Setting up one does not configure the others:
+
+| What you need | What it does | Where it goes |
+|---|---|---|
+| **LangSmith API key** | Authenticates the CLI to LangSmith for deployment and local development. | `LANGSMITH_API_KEY` in `.env`. |
+| **Model provider API key** | Pays for and authorizes model calls, such as Anthropic or OpenAI. | `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` in `.env` for the direct-provider setup. |
+| **Connected app account** | Lets tools access a person's Google, Linear, GitHub, or other account. | Connected in LangSmith or through the bot's sign-in link; not pasted into `.env`. |
+
+### 1. Choose your workspace and copy its ID
+
+1. Open [LangSmith](https://smith.langchain.com) and select your organization and workspace
+   using the selector at the top left.
+2. Open **Settings** and select **Workspace**.
+3. Check the workspace name, then click the copy icon next to it (**Copy workspace ID**).
+4. Put that value in `.env` as `LANGSMITH_WORKSPACE_ID`.
+
+<img src="docs/images/setup/workspace-id.jpg" alt="Workspace settings with the Workspace tab selected and a copy icon beside Demo Workspace" width="350">
+
+Use the **workspace ID**, not the organization ID. In the classic settings UI, the workspace
+ID is under **Settings → Workspace → General**. The key, tool kit, and deployment should all
+refer to this same workspace.
+
+### 2. Create a personal access token for the quickstart
+
+1. In **Settings**, select **Organization → API Keys**.
+2. Click **Create API key**.
+3. Enter a description, such as `persistent-agent`.
+4. Choose **Personal Access Token**.
+5. Set **Default Workspace** to the workspace from step 1 and choose an expiration.
+6. Click **Create API Key** and copy the value shown once into `LANGSMITH_API_KEY` in `.env`.
+
+<img src="docs/images/setup/personal-access-token.jpg" alt="Create an API Key dialog with Personal Access Token selected, a default workspace, and expiration options" width="720">
+
+**Check before continuing:** `.env` has both `LANGSMITH_API_KEY` and
+`LANGSMITH_WORKSPACE_ID`. A personal access token inherits your permissions; it does not
+make you a workspace admin if you were not already one.
+
+### Workspace scope versus organization scope
+
+**Key type** answers “who is calling?” **Scope** answers “which workspaces can they access?”
+
+| Key choice | When to use it | Workspace behavior |
+|---|---|---|
+| **Personal Access Token** | This interactive quickstart and local Studio testing. | Inherits your access. The default workspace is a routing default, not a restriction to that workspace. Set `LANGSMITH_WORKSPACE_ID` explicitly. |
+| **Service Key → Specific Workspaces** | Automation or CI that deploys to selected workspaces. | Select the target workspace and suitable roles. Prefer a single workspace when that is all the automation needs. |
+| **Service Key → Full Organization** | Automation that actually needs organization-wide access. | Broader scope; still set `LANGSMITH_WORKSPACE_ID` to select the deployment's destination. |
+| **Tracing Only** | Writing traces. | Insufficient for this deployment quickstart. |
+
+For a service key, the creation dialog has a separate **Scope for Service Key** setting:
+
+<img src="docs/images/setup/service-key-scope.jpg" alt="Service Key selected with Specific Workspaces scope, organization role, selected workspace, and workspace role" width="720">
+
+The role shown in the screenshot is the form's default, not a promise that it can perform
+every setup action. Your deployment automation needs the permissions for the resources it
+creates. Creating Tool Gateway servers and kits uses your signed-in user in the UI (or a
+personal access token through the API); a service key cannot create those resources.
+
+Setting `LANGSMITH_WORKSPACE_ID` selects a workspace. It does **not** expand a key's access,
+turn a PAT into a service key, or change an organization-scoped key into a workspace-scoped key.
+For gateway-specific key requirements, see [the optional gateway setup](#optional-use-the-llm-gateway).
+
+See [LangSmith API keys](https://docs.langchain.com/langsmith/create-account-api-key) for
+permissions and key lifecycle details.
+
+## Tool Server setup
+
+The feature called **Tool Server** in this walkthrough is documented as
+[Tool Gateway](https://docs.langchain.com/langsmith/tool-gateway) and appears as **Tools** in
+LangSmith. It connects the agent to apps. The **LLM Gateway** handles model calls and is a
+separate, optional feature.
+
+You will do four things: **choose a built-in integration (or add a custom server) → connect
+your account if required → select tools in a kit → copy the kit's MCP URL into `.env`**.
+LangSmith hosts this layer; you do not run a separate Tool Server process on your laptop.
+
+### 1. Choose your tools: start with the built-ins
+
+**LangSmith provides built-in integrations you can select directly.** You do not need to
+click **Add MCP server**, find an MCP URL, or host a server for any of these integrations.
+Choose the services you want, connect your accounts where required, and select their tools
+for your kit.
+
+| How you connect | Built-in integrations |
+|---|---|
+| **Sign in and authorize access (OAuth)** | Excel, GitHub, Gmail, Google BigQuery, Google Calendar, Google Docs, Google Drive, Google Meet, Google Sheets, Google Slides, Linear, LinkedIn, OneDrive, Outlook, PowerPoint, Salesforce, SharePoint, Slack, Teams, Word, X |
+| **Provide an API key from the service** | Apollo, Ashby, Exa, Pylon, Tavily |
+| **No credentials needed** | Base, Parallel |
+
+See the [official built-in list](https://docs.langchain.com/langsmith/tool-gateway-servers#use-a-built-in-server)
+for the latest available integrations and authentication requirements.
+
+1. Open **Tools → MCP servers** in LangSmith.
+2. Select **You** under **Connected as**, and **Workspace** for server scope.
+3. Search for an integration from the table above.
+4. Choose the entry labeled **Built-in**. Your workspace may also have custom servers with
+   similar names; you do not need to create another one.
+5. Follow [Connect your account](#2-connect-your-account) below, then add its tools to your kit.
+
+**Built-in means no server registration.** Integrations that require OAuth or an API key
+still need a connected account. Every integration's tools must be selected in your kit
+before this agent can use them.
+
+#### Optional: add a custom server or a public test tool
+
+Use **Add MCP server** for your own MCP endpoint or a service that is not already available
+in the list. Skip this section if you are using only built-in integrations.
+
+For a first test without another app login, you can add the public LangChain documentation
+server. It gives you a concrete tool to test after deployment:
+
+1. Open **Tools** in the LangSmith sidebar, then select **MCP servers**.
+2. Select **You** under **Connected as**, and **Workspace** for server scope.
+3. Search for `docs-langchain`. If your workspace already has the server at
+   `https://docs.langchain.com/mcp`, use it and skip adding a duplicate.
+4. Otherwise, click **Add MCP server** and enter:
+
+   | Field | Value |
+   |---|---|
+   | **Name** | `docs-langchain` |
+   | **URL** | `https://docs.langchain.com/mcp` |
+   | **Authentication** | **Public** |
+
+5. Click **Add server** at the bottom of the panel.
+
+<img src="docs/images/setup/public-server.jpg" alt="Add MCP server filled with docs-langchain, https://docs.langchain.com/mcp, and Public authentication" width="704">
+
+**Expected result:** the server appears as **Connected**. Public servers do not have an
+account sign-in step. Continue to [create your tool kit](#3-create-a-workspace-tool-kit),
+or add the apps you want below first.
+
+### 2. Connect your account
+
+1. In **Tools → MCP servers**, keep **You** and **Workspace** selected and find your integration.
+2. If it needs credentials, click **Connect** on its **Built-in** entry. If it already shows **Connected**,
+   continue to [create your tool kit](#3-create-a-workspace-tool-kit).
+3. Complete the connection method listed in the table above:
+   - **OAuth:** sign in to the service, choose the account or workspace you intend to use,
+     and review and approve the requested access. Complete admin approval if required.
+   - **API key:** enter a key from that service in the connection form. This is the
+     service's own key, not your LangSmith API key.
+   - **No credentials:** skip the connection step and go straight to selecting tools.
+4. After connecting, return to **MCP servers** and confirm the integration shows **Connected**.
+5. [Create or edit your tool kit](#3-create-a-workspace-tool-kit), filter for the integration, and
+   select the tools you want the agent to have.
+
+Repeat for other built-in apps you want to use. Each person who uses the bot will connect
+their own accounts later; your connection does not authorize their accounts.
+
+**Connecting Slack here is separate from installing the agent's Slack bot.** This step gives
+the agent access to Slack tools through your account. The [deployment step](#deploy-and-connect-slack)
+installs the bot you talk to. Neither step requires manually registering a Slack MCP server.
+
+<details>
+<summary>Optional: connect a custom OAuth MCP server</summary>
+
+If you deliberately want a separate remote MCP endpoint, you can register it yourself.
+For example, the screenshot below shows Linear's remote endpoint. **Linear also has a
+built-in integration; use that for the simpler setup.** This custom example is optional.
+
+1. In **Tools → MCP servers**, keep **You** and **Workspace** selected.
+2. Check whether the endpoint is already registered. If it is, use the existing entry.
+   Otherwise, click **Add MCP server**.
+3. For this example, enter **Name:** `Linear` and **URL:** `https://mcp.linear.app/mcp`.
+4. Select **OAuth**, leave **OAuth Setup** as **Automatic OAuth**, and click **Add server**.
+
+<img src="docs/images/setup/add-mcp-server.jpg" alt="Optional custom Linear MCP server setup with OAuth and Automatic OAuth selected; the built-in Linear integration needs no server registration" width="704">
+
+5. Click **Connect** on the server's row, complete the provider's authorization flow,
+   and confirm **Connected** before selecting its tools in your kit.
+
+</details>
+
+#### Why do I have to connect before I can add tools for my users?
+
+The kit editor needs to discover the server's tools. An authenticated server can require
+**your connection to load that list**, even though the kit is intended for other people.
+An unconnected server can show exactly this message:
+
+<img src="docs/images/setup/connect-before-tools.jpg" alt="Linear is Not connected and says: Tool preview is unavailable. Connect to load the tool list." width="672">
+
+There are two separate steps:
+
+- **You, the kit creator:** connect an account so the editor can load the tools and let you
+  select them. This is setup-time tool discovery.
+- **Each person using the bot:** connect their own account through the bot's private
+  sign-in link. This is the account used for their tool calls.
+
+Choosing **Workspace** for the kit shares its tool selection; it does not by itself share
+your personal OAuth credentials. Keep `TOOLS_PROFILE` unset for this per-person setup.
+For a custom server that uses API keys, choose per-person credentials if each person should
+use their own access; workspace credentials or a shared profile deliberately use shared access.
+
+If the picker is empty, go back to **MCP servers**, finish **Connect**, and reopen the kit
+editor. If it reports a rejected workspace credential, the workspace admin must fix that
+server's credential; creating another kit will not fix it.
+
+### 3. Create a workspace tool kit
+
+1. Open **Tools → Tool kits**.
+2. Select **Workspace**, then click **Create tool kit**.
+3. Name the kit `persistent-agent`.
+4. Under **Who can use this tool kit**, select **Workspace**.
+
+<img src="docs/images/setup/create-tool-kit.jpg" alt="Create tool kit named persistent-agent with Workspace selected so everyone in the workspace can use it" width="704">
+
+**Use Workspace for this shared bot.** A Personal kit is visible and usable only by its owner,
+and a workspace kit can include only workspace servers and built-in integrations. If you
+cannot create a workspace kit, ask a workspace admin to create it for this deployment.
+
+5. Search or filter by server and check the tools you want to include. For the starter
+   example, search `search_docs` and check **search_docs_by_lang_chain** from **docs-langchain**.
+   For built-in Slack or another app, filter by that app and select its read/search tools
+   to start with; add write tools when needed.
+
+<img src="docs/images/setup/select-tool.jpg" alt="Tool picker with search_docs_by_lang_chain selected from the docs-langchain server" width="704">
+
+6. Click **Review tool selection** at the bottom of the panel.
+7. Confirm the selected tools, leave custom labels blank unless you need them, and click
+   **Create tool kit**.
+
+**Expected result:** your kit appears in the **Workspace** list with at least one tool.
+A kit with zero tools does not give the agent any app capabilities.
+
+### 4. Copy the kit's MCP URL into `.env`
+
+1. Click your kit's name to open its details.
+2. Find **MCP URL** and click the copy icon beside it.
+3. Paste that complete URL into `TOOLS_MCP_URL` in `.env`.
+
+<img src="docs/images/setup/kit-mcp-url.jpg" alt="An example saved tool kit showing its tools and the MCP URL copy button; the example URL is redacted" width="672">
+
+*This screenshot uses an existing example kit. Open your own `persistent-agent` kit and copy
+its URL; do not copy a URL from a screenshot.*
+
+For the GCP US region, the URL has this shape:
+
+```dotenv
+TOOLS_MCP_URL=https://api.smith.langchain.com/v1/managed-tools/kits/<your-kit-id>/mcp
+```
+
+Use the URL LangSmith gives you, including your region's host. It is **not** the browser's
+`smith.langchain.com/.../tools` address or the upstream service's MCP URL.
+
+[`tools/mcp.py`](tools/mcp.py) already connects this kit with LangSmith authentication and
+adds `?mode=search` so the agent can find relevant tools. You do not need to paste the UI's
+sample MCP code into the project or put an API key in the URL.
+
+**Check before deploying:** the kit and `LANGSMITH_WORKSPACE_ID` belong to the same workspace,
+the kit contains tools, and `TOOLS_PROFILE` is unset. After changing `.env`, run
+`uv run mda deploy` again to update the deployment.
+
+### 5. Let each teammate connect their own apps
+
+After the bot is deployed:
+
+1. Have the teammate open a **DM** with the bot and send “hi”.
+2. If the bot sends a connection link, have that teammate open it and sign in to their own
+   account. Do not forward your own connection link to them.
+3. Complete the requested connections, return to the DM, and retry the request if needed.
+4. Test a read-only request, such as “List my Linear issues,” using an app in your kit.
+
+The template does not enable just-in-time MCP authentication, so missing connections may be
+requested before the first run starts. For an easy first run, keep the kit small. Public
+servers such as the documentation server need no per-person connection.
+
+The Slack bot installation and a person's Slack **tool** connection are separate: installing
+the bot makes it reachable in Slack; connecting a tool account authorizes that person's tool use.
+
+## Deploy and connect Slack
+
+The repository already includes the Slack channel declaration in
+[`channels/slack.py`](channels/slack.py). You do not need to write a Slack app manifest or
+add bot tokens to `.env` for this managed setup.
+
+1. From the repository directory, run `uv run mda deploy`.
+2. Follow any workspace selection prompts and confirm the target is the workspace used
+   for your API key and tool kit.
+3. If the terminal prints a Slack authorization link, open it and select the intended
+   Slack workspace. Review the requested permissions and approve the app. If your workspace
+   requires admin approval, have the admin complete it before continuing.
+4. Return to the terminal and press **Enter** when prompted. If Slack is already authorized,
+   this authorization step may be skipped.
+5. Wait for the CLI to finish. Open its deployment dashboard URL and check that the
+   deployment is ready. If it fails, open the revision logs before retrying.
+6. Open the bot's DM in Slack. It may send the first message after deployment; otherwise,
+   find it under Slack's apps and send “hi”. Complete any personal app connection prompts.
+7. For the starter documentation kit, ask: **“Use the LangChain documentation tool to
+   explain how Managed Deep Agents schedules work.”** For another kit, ask a read-only
+   question using one of its tools. In LangSmith Studio or the run trace, confirm a tool
+   call appears and the bot returns an answer.
+
+**You’re ready when:** the deployment is ready, the bot replies in Slack, and a tool call
+succeeds using the caller’s connected account (or the public documentation server).
+
+`mda deploy` reads `.env` and forwards non-reserved settings and provider keys to the hosted
+deployment. The LangSmith key authenticates deployment; the hosted runtime manages its own
+platform authentication. You do not need to keep the terminal running after deployment.
+
+Once DMs work, add the bot to a channel if you want shared conversations. This template uses
+watch mode there: it reads messages and stays quiet when it has nothing useful to add.
+
+## Model options
+
+All three options are supported by the installed dependencies. Choose one `AGENT_MODEL`;
+the agent does not automatically switch providers when a key is missing or a model fails.
+
+| Option | `AGENT_MODEL` | Credentials |
+|---|---|---|
+| **Claude Opus — default** | `anthropic:claude-opus-5-5` | `ANTHROPIC_API_KEY` in `.env`. |
+| **GPT — direct OpenAI** | `openai:gpt-6.1-sol` | `OPENAI_API_KEY` in `.env`. |
+| **LLM Gateway — Opus example** | `langsmith:anthropic/claude-opus-5-5` | LangSmith gateway access and an Anthropic provider secret in the deployment's workspace. |
+
+**Tool Gateway works with all three.** Keep the same `TOOLS_MCP_URL` to use your connected
+apps regardless of the selected model. The LLM Gateway selects and routes model calls;
+Tool Gateway supplies tools. Every option still needs LangSmith deployment access.
+
+### Use your own provider key
+
+Choose **one** configuration in `.env` and redeploy. Replace or comment out the previous
+`AGENT_MODEL` line so there is only one active value. Direct Opus is the default when
+`AGENT_MODEL` is unset or empty. Both provider packages are already included in this repository.
+An Anthropic API key requires API billing; a Claude chat subscription alone does not supply it.
+
+**Claude Opus (the default and quickstart):**
+
+```dotenv
+AGENT_MODEL=anthropic:claude-opus-5-5
+ANTHROPIC_API_KEY=<your-anthropic-api-key>
+```
+
+**OpenAI:**
+
+```dotenv
+AGENT_MODEL=openai:gpt-6.1-sol
+OPENAI_API_KEY=<your-openai-api-key>
+```
+
+Use a model your provider account can access. Keep `LANGSMITH_API_KEY`,
+`LANGSMITH_WORKSPACE_ID`, and `TOOLS_MCP_URL` from the quickstart in either case. They still
+configure deployment and tools even when model calls go directly to the provider.
+
+### Optional: use the LLM Gateway
+
+Skip this section if you followed the direct-provider quickstart. The gateway is useful
+when your team wants centrally managed model credentials and policies.
+
+1. In LangSmith, select the **same workspace** as your deployment.
+2. In **Settings → Workspace → Secrets**, add your provider key as a workspace secret
+   named `ANTHROPIC_API_KEY` (or the name required by your provider). The gateway reads it
+   from that workspace; a key only in your local `.env` does not configure the gateway.
+3. Make sure the LangSmith key used for local gateway access is **workspace-scoped** and
+   has `gateway:invoke` and `workspaces:read`. For a PAT, the gateway uses its **Default
+   Workspace**; for a service key, choose **Specific Workspaces** and just this workspace.
+   Organization-scoped keys are not supported by the gateway. Setting
+   `LANGSMITH_WORKSPACE_ID` does not change that.
+4. Use **LLM Gateway → Simulator** to verify that the selected model works in that workspace.
+5. Set the model in `.env`, then redeploy:
+
+   ```dotenv
+   AGENT_MODEL=langsmith:anthropic/claude-opus-5-5
+   ```
+
+This explicitly opts into gateway routing. You can use another model available in your
+gateway by changing the provider/model portion of the value. To switch back, set a direct `anthropic:` or `openai:` model plus its provider key as shown
+above, and redeploy.
+
+See [gateway setup](https://docs.langchain.com/langsmith/llm-gateway-admin-setup),
+[authentication](https://docs.langchain.com/langsmith/llm-gateway-authentication), and
+[provider keys](https://docs.langchain.com/langsmith/llm-gateway-provider-authentication).
+
+## Setup troubleshooting
+
+| What you see | What to check |
+|---|---|
+| `Host key verification failed` while cloning | Complete [GitHub’s SSH connection check](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/testing-your-ssh-connection), verifying its published host fingerprint, or use the HTTPS clone command below. |
+| `Permission denied (publickey)` while cloning | [Add an SSH key to GitHub](https://docs.github.com/en/authentication/connecting-to-github-with-ssh). If you prefer HTTPS, use `git clone https://github.com/langchain-samples/Persistent-Agent.git`. |
+| No **Tools** page or workspace kit creation unavailable | Check the LangSmith plan, supported region, selected workspace, and Workspace Admin access. See [Tool Gateway availability](https://docs.langchain.com/langsmith/tool-gateway). |
+| No tools in the kit picker | Connect the server as **You** first. Check the **Workspace/Personal** scope and server filter, then reopen the editor. A registered OAuth server alone is not a connected account. |
+| “Tool preview is unavailable” | Finish the provider's **Connect** flow, wait for success, and return to LangSmith. |
+| A server reports an invalid workspace credential | Ask its workspace admin to update that server's credential; retry loading tools afterward. |
+| LangSmith `401` / `403`, or deployment goes to the wrong workspace | Check key expiration, key permissions, `LANGSMITH_WORKSPACE_ID`, and region. A tracing-only key cannot deploy. |
+| Model authentication error or unexpected LLM Gateway error | Check that there is one active `AGENT_MODEL` line. Use `anthropic:...` with `ANTHROPIC_API_KEY`, or `openai:...` with `OPENAI_API_KEY`, then redeploy. |
+| Bot replies but cannot use apps | Confirm `TOOLS_MCP_URL` is the saved kit's MCP URL, the kit contains tools, and the deployment was updated after changing `.env`. Finish the caller's connection prompts. |
+| A teammate cannot use your kit | Use a **Workspace** kit with workspace servers or built-in integrations. Keep `TOOLS_PROFILE` unset and have the teammate connect their own accounts. |
+| Bot asks you to connect before it answers | The kit includes authenticated servers you have not connected. Complete the DM links or start with the public documentation tool only. |
+| Slack authorization does not finish | Complete Slack admin approval, then return to the terminal and press Enter when prompted. |
+| `Cannot change target.agent_id on an existing channel` | Keep the agent name the Slack app was created with, or follow the [architecture troubleshooting](docs/architecture.md#troubleshooting) before recreating the integration. |
+
+For another LangSmith region, set `LANGSMITH_ENDPOINT` before the first deployment using the
+[region table](https://docs.langchain.com/langsmith/python/managed-deep-agents-deploy#select-a-saas-region).
+Use keys and a tool kit from that same region.
 
 ## Use it
-
-**Start in a DM.** Say "hi" and it replies with a short welcome and a few playbooks it can
-start. It learns your preferences as you work together, and asks for your timezone only when
-setting up recurring work. Your heartbeat and dreaming are set up automatically on your first DM.
-
-**Hand it work in plain language:**
 
 | Say | What it does |
 |---|---|
 | "Send me a morning brief" | Adopts the Morning Brief playbook: your day, each weekday morning. |
-| "Every Friday at 4, summarize what I shipped this week" | Creates a recurring task in your timezone. |
-| "Let me know when the release PR is approved" | Records a goal; the hourly heartbeat checks for progress. |
-| "Check back on this tomorrow" | Schedules a one-time follow-up in this conversation. |
-| "Research our top three competitors' pricing" | Hands it to a background subagent and reports back when done. |
-| "Book a table for two on Friday" | Works in its browser and hands it to you when it needs you, such as to log in. |
-| "What do you have scheduled for me?" | Lists your recurring tasks, heartbeat, dreaming and check-ins. |
-| "Move my brief to 7:30" | Updates your settings and the brief's schedule. |
+| "Every Friday at 4, summarize what I shipped" | Creates a recurring task in your timezone. |
+| "Let me know when the release PR is approved" | Records a goal and checks on it hourly until it's done. |
+| "Research our top three competitors' pricing" | Hands it to a background subagent and reports back. |
+| "After every meeting, send me an action item summary" | Summarizes action items from available meeting notes or transcripts and sends them to you. |
 | `!clear` | Forgets everything about you and cancels your schedules. |
 
-**Add it to channels.** It reads every message, answers when it can add something and otherwise
-stays quiet. Mention it to ask directly. Your personal memory never loads in a channel.
-
-**Connect your apps.** When it needs an app you haven't connected, it posts a link in your DM to
-connect your own account; then message it again.
-
-**Use its browser.** When it needs you to log in, finish 2FA or make a choice, it hands you the
-browser: in your DM the link is in its reply; if you asked in a channel, the link goes to your
-DM. The link works for 15 minutes and lets anyone holding it use the browser, so don't share it.
-Click *Hand back* when you're done and it carries on.
-
-## How it works
-
-### Which mechanism does what
-
-| Mechanism | Purpose | Where it lives |
-|---|---|---|
-| **Skill** | How to do a kind of work. | Shared `skills/<name>/SKILL.md`, read when relevant. |
-| **Playbook** | A skill for a repeatable job, run once or adopted on a schedule. | A skill whose description starts with "Playbook:". |
-| **Playbook settings** | One person's preferences and state for a playbook they adopted. | `/memories/user/playbooks/<name>.md` |
-| **Scheduled task** | Recurring work and its timing. | A user-owned MDA schedule; playbook schedules are tagged `playbook=<name>`. |
-| **Check-in** | A single later follow-up. | A one-time schedule in the same conversation. |
-| **Goal** | An outcome with a finish line. | `/memories/user/goals/<slug>.md` |
-| **Heartbeat** | Advances active goals hourly and reports real progress or blockers. | One hourly schedule per person. |
-| **Memory buffer** | Dated, attributed notes worth remembering. | `/memories/user/buffer.md`, appended during DM work. |
-| **Dreaming** | Consolidates the buffer into long-term memory nightly. | One daily schedule per person. |
-| **Background subagent** | Long work now, while the conversation continues. | An async task that reports back. |
-
-For example, "get this meeting booked" becomes a goal advanced by the heartbeat; "brief me every
-morning" adopts a playbook with personal settings and a scheduled task; "I prefer five bullets"
-becomes a buffered note that dreaming files into memory.
-
-### Everyone's own assistant
-
-- **[Memory](https://docs.langchain.com/langsmith/python/managed-deep-agents-memory)** (`/memories/user/`) loads only in that person's DMs.
-- **[Schedules](https://docs.langchain.com/langsmith/python/managed-deep-agents-schedules)** run as the person and only they can see or cancel them. Check-ins asked for in a shared channel belong to the agent instead, so anyone there can see or cancel them.
-- **Integrations** use the accounts that person connected, and their [browser](https://docs.langchain.com/langsmith/python/managed-deep-agents-browser-use) keeps their logins.
-
-### Heartbeat and dreaming
-
-`PerUserSchedulesMiddleware` (`middleware/per_user_schedules.py`) runs before the model on a
-person's DM and makes sure they have exactly one hourly heartbeat and one nightly dreaming
-schedule, owned by them. It creates them just in time because they must run as that person,
-whose identity is only available on their own request. Existing schedules are left as they are,
-including paused ones, and duplicates from concurrent DMs are removed. `heartbeat.py` and
-`dreaming.py` hold each schedule's prompt and timing; `agent.py` lists them.
-
-The heartbeat continues the person's DM. It follows the goals skill: it advances active goals
-within existing approvals, rarely offers relevant help, and otherwise replies `[quiet]`, which
-is never posted. No goal gets its own polling schedule.
-
-Dreaming runs at 02:00 America/Los_Angeles in a fresh thread and always stays quiet. It merges
-the buffer into `/memories/user/AGENTS.md` and topic files, deduplicates, resolves clear
-corrections and removes only the notes it saved. It never touches goals or reads traces.
-
-### Playbooks
-
-Three are built in: **Morning Brief**, **Weekly Planner** and **Watchlist**. Because they're
-skills, the agent runs one when someone asks ("brief me on my day"). Adopting one, per
-[the playbooks skill](skills/playbooks/SKILL.md), creates that person's settings file and a
-schedule tagged `playbook=<name>`. The skill stays shared: improve it and redeploy, and everyone
-who adopted it gets the change with their settings intact. New shared playbooks are new skills,
-added through code review. Adopting, changing and stopping playbooks are model-instructed and
-haven't been tested with a live model.
-
-### Slack
-
-- **Watch mode:** in channels it hears every message. Set `trigger_mode="mention"` in
-  `channels/slack.py` to answer only mentions.
-- **Reactions:** each message gets an emoji a small, fast model picks (Haiku by default;
-  set `REACTION_MODEL` to change it), or none. It runs alongside the reply, so it never
-  slows it down. Change the prompt in `channels/slack.py`, or pass `reactions=False` to
-  turn them off.
-- **Continuous DMs:** messages and thread replies in a DM share one conversation. Answers post at
-  the top level unless the person replies in a thread.
-- **Links:** MDA shows browser handoff and connect-app links only in Studio, so
-  `slack_conversation.py` delivers them in Slack, only to the person they belong to. The model
-  writes `{browser_link}` where the link goes and never sees the link itself.
-
-This relies on private delivery hooks in `managed-deepagents==0.10.5`. Check them when upgrading
-the SDK; `tests/test_slack_conversation.py` fails if they change.
-
-### Background work
-
-For long work it starts [async subagents](https://docs.langchain.com/langsmith/python/managed-deep-agents-subagents)
-and keeps talking: `researcher` investigates one question in depth, `reviewer` checks a report or
-plan before it goes out, `general-purpose` takes other self-contained tasks, and `clone` starts
-with the conversation so far.
-
-## Project structure
-
-| Path | What it is |
-|---|---|
-| [`agent.py`](agent.py) | The model, tools, subagents and which schedules every person gets. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-agent-definition) |
-| [`instructions.md`](instructions.md) | The system prompt. Start here to change how it behaves. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-instructions) |
-| [`heartbeat.py`](heartbeat.py), [`dreaming.py`](dreaming.py) | Each person's hourly heartbeat and nightly dreaming. |
-| [`middleware/per_user_schedules.py`](middleware/per_user_schedules.py) | Gives each person their own schedules on their DM. |
-| [`slack_conversation.py`](slack_conversation.py) | Continuous DMs and browser and connect-app links in Slack. |
-| [`skills/`](skills/) | Onboarding, goals, dreaming and the three playbooks. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-skills) |
-| [`tools/`](tools/) | Scheduling, `!clear`, schedule ownership and the Tool Gateway. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-tools) |
-| [`channels/slack.py`](channels/slack.py) | The Slack bot, its emoji reactions and its icon (`channels/assets/icon.png`, 512×512). [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-channels-slack) |
-| [`memory.py`](memory.py) | Personal memory, mounted only in one-on-one conversations. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-memory) |
-| [`browser.py`](browser.py) | A browser per person. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-browser-use) |
-| [`identity.py`](identity.py) | Who may call the deployment directly. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-identity) |
-| [`sandbox/`](sandbox/__init__.py) | A filesystem and shell per thread. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-sandboxes) |
-
-## Customize
-
-- **Behavior:** edit `instructions.md` and the skills, then redeploy.
-- **New playbooks:** add `skills/<name>/SKILL.md` with a description starting "Playbook:".
-- **Another schedule for everyone:** add a `PersonalSchedule` file like `heartbeat.py` and list it
-  in `agent.py`.
-- **Approvals:** add `interrupt_on={"tool_name": True}` in `agent.py` to require a yes before a
-  tool runs.
-- **Accounts for unattended runs:** set `TOOLS_PROFILE` to a LangSmith profile with its own
-  logins and a teammate's permissions, not an admin's.
-- **Model:** set `AGENT_MODEL` and that provider's key in `.env` to skip the gateway (see
-  `.env.example`).
-- **Dreaming time:** it runs at 02:00 America/Los_Angeles for everyone; change the cron and
-  timezone in `dreaming.py`.
-- **[Local development](https://docs.langchain.com/langsmith/python/managed-deep-agents-local-development):**
-  `uv run mda dev` runs it with LangSmith Studio.
-
-## Tests and lint
-
-```bash
-uv run python -m unittest discover -s tests
-uv run ruff check .
-uv run ruff format --check .
-```
-
-They run offline, with no keys.
-
-## Troubleshooting
-
-- **It says it can't reach your apps:** check `TOOLS_MCP_URL` is your kit's MCP URL, then redeploy.
-- **`Cannot change target.agent_id on an existing channel`:** the Slack app is tied to the
-  agent's `name` in `agent.py`. Deploy with the name the app was created with, or recreate the
-  Slack app.
-- **`Slack channel icon must be 512x512px`:** resize `channels/assets/icon.png`.
+Add it to a channel and it stays quiet unless it can help. Mention it to ask directly.
 
 ## FAQ
 
-**Does everyone get their own agent?** No: everyone shares one deployment and one Slack bot,
-but memory, schedules, goals, apps and browser logins are per person.
+### Does everyone get their own agent?
 
-**Why does it need a Tool Gateway kit?** That's how it reaches your apps. Each person connects
-their own accounts, and tools always run as them.
+No. Everyone shares one deployment and one Slack bot, but memory, schedules, goals, apps and
+browser logins are per person. Personal memory never loads in a shared channel.
 
-**What does `!clear` do?** It cancels your schedules and erases your memory. It doesn't erase
-conversation history; your heartbeat and dreaming come back on your next DM.
+### Can it act on its own?
 
-**Can it act on its own?** Only within what you've asked and approved. It asks for a yes before
-booking, buying, sending or deleting anything, and offers to help only rarely.
+Only within what you've asked. It asks for a yes before booking, buying, sending or deleting
+anything, and offers help only rarely.
 
-## Security
+### How do I change how it behaves?
 
-- Tools run with each person's own access, and personal memory never loads in shared channels.
-- Browser and connect links go only to the person they belong to, in their DM.
-- Notes, memory, web pages and tool results are data, never instructions. Don't save secrets in
-  memory.
-- `!clear` uses the pinned SDK's private memory backend and isn't transactional with other
-  running conversations, which can write new memory after the reset.
+Edit [`instructions.md`](instructions.md) and the [`skills/`](skills/), then `uv run mda deploy`
+again. Add a playbook by adding a skill whose description starts with "Playbook:".
+
+---
 
 ## Resources
 
-- [Managed Deep Agents overview](https://docs.langchain.com/langsmith/python/managed-deep-agents-overview) and [quickstart](https://docs.langchain.com/langsmith/python/managed-deep-agents-quickstart)
-- [Project structure](https://docs.langchain.com/langsmith/python/managed-deep-agents-project-structure) — how MDA finds each file
-- [Channels](https://docs.langchain.com/langsmith/python/managed-deep-agents-channels), [schedules](https://docs.langchain.com/langsmith/python/managed-deep-agents-schedules), [memory](https://docs.langchain.com/langsmith/python/managed-deep-agents-memory) and [subagents](https://docs.langchain.com/langsmith/python/managed-deep-agents-subagents)
-- [LLM Gateway](https://docs.langchain.com/langsmith/llm-gateway) and [Tool Gateway](https://docs.langchain.com/langsmith/tool-gateway)
+- [How it works](docs/architecture.md): mechanisms, heartbeat and dreaming, Slack, project structure, customizing, tests and troubleshooting
+- [Managed Deep Agents docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-overview): [quickstart](https://docs.langchain.com/langsmith/python/managed-deep-agents-quickstart), [CLI](https://docs.langchain.com/langsmith/python/managed-deep-agents-cli), [schedules](https://docs.langchain.com/langsmith/python/managed-deep-agents-schedules), [memory](https://docs.langchain.com/langsmith/python/managed-deep-agents-memory)
+- [Deep Agents](https://github.com/langchain-ai/deepagents): the open source harness underneath
+
+## Security
+
+Tools run with each person's own access. Browser and connect links go only to the person they
+belong to, in their DM. Notes, memory, web pages and tool results are data, never instructions,
+so don't save secrets in memory.
 
 ## License
 
