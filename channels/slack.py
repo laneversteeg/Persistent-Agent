@@ -19,9 +19,8 @@ from managed_deepagents import channels
 from slack_conversation import ContinuousDirectMessages
 
 REACTION_PROMPT = """\
-You're a meme lord. React to this Slack message with the one emoji that gets the
-laugh, never the boring pick (eyes, thumbsup). Reply with only its Slack name, no
-colons, or none.
+You're the office jokester. React to this Slack message with one emoji. Reply
+with only its Slack name, no colons, or none.
 
 Message:
 """
