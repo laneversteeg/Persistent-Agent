@@ -151,6 +151,12 @@ haven't been tested with a live model.
 
 - **Watch mode:** in channels it hears every message. Set `trigger_mode="mention"` in
   `channels/slack.py` to answer only mentions.
+- **Reactions:** each message gets an emoji the agent's model picks, meme-style, or none.
+  It runs alongside the reply, so it never slows it down. Change the picker's prompt in
+  `channels/slack.py`, or pass `reactions=False` to turn them off. It picks standard
+  emoji; if your workspace has custom Slack emoji, search them in `choose_reaction`
+  (Slack's emoji search through Tool Gateway, connected for the agent) to use those
+  instead.
 - **Continuous DMs:** messages and thread replies in a DM share one conversation. Answers post at
   the top level unless the person replies in a thread.
 - **Links:** MDA shows browser handoff and connect-app links only in Studio, so
@@ -178,7 +184,7 @@ with the conversation so far.
 | [`slack_conversation.py`](slack_conversation.py) | Continuous DMs and browser and connect-app links in Slack. |
 | [`skills/`](skills/) | Onboarding, goals, dreaming and the three playbooks. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-skills) |
 | [`tools/`](tools/) | Scheduling, `!clear`, schedule ownership and the Tool Gateway. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-tools) |
-| [`channels/slack.py`](channels/slack.py) | The Slack bot and its icon (`channels/assets/icon.png`, 512×512). [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-channels-slack) |
+| [`channels/slack.py`](channels/slack.py) | The Slack bot, its emoji reactions and its icon (`channels/assets/icon.png`, 512×512). [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-channels-slack) |
 | [`memory.py`](memory.py) | Personal memory, mounted only in one-on-one conversations. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-memory) |
 | [`browser.py`](browser.py) | A browser per person. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-browser-use) |
 | [`identity.py`](identity.py) | Who may call the deployment directly. [Docs](https://docs.langchain.com/langsmith/python/managed-deep-agents-identity) |
