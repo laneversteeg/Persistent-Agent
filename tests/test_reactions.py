@@ -1,6 +1,7 @@
 """The emoji reaction the model picks, cleaned up for Slack."""
 
 import asyncio
+import os
 import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
@@ -30,6 +31,30 @@ class ChooseReaction(unittest.TestCase):
         self.assertIsNone(pick("🔥"))
         self.assertIsNone(pick("I'd go with fire"))
         self.assertIsNone(pick(""))
+
+
+class ReactionModel(unittest.TestCase):
+    def model(self, **env):
+        with patch.dict(os.environ, env, clear=True):
+            return slack.reaction_model()
+
+    def test_haiku_by_default(self):
+        self.assertEqual(self.model(), slack.HAIKU)
+
+    def test_haiku_when_the_agent_uses_the_gateway(self):
+        agent = "langsmith:anthropic/claude-opus-5-5"
+        self.assertEqual(self.model(AGENT_MODEL=agent), slack.HAIKU)
+
+    def test_the_agents_model_when_it_skips_the_gateway(self):
+        agent = "anthropic:claude-opus-5-5"
+        self.assertEqual(self.model(AGENT_MODEL=agent), agent)
+
+    def test_reaction_model_overrides(self):
+        env = {
+            "AGENT_MODEL": "openai:gpt-6.2-sol",
+            "REACTION_MODEL": "openai:gpt-6-luna",
+        }
+        self.assertEqual(self.model(**env), "openai:gpt-6-luna")
 
 
 if __name__ == "__main__":
