@@ -23,7 +23,7 @@ it can run in the background to take work off your plate. Built on
 **Features include:**
 
 - **Personal memory**: remembers each user's preferences and decisions
-- **Goals**: tracks each user's goals in memory and works in the background to advance them
+- **Goals**: tracks each user's goals and works in the background to advance them
 - **Dreaming**: runs a nightly job to clean up and consolidate memory
 - **Playbooks**: give it the workflows and organizational knowledge you want your team to adopt
 - **Watch mode**: reads every message in channels and speaks up only when it can help
