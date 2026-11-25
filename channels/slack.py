@@ -29,9 +29,12 @@ _NAME = re.compile(r"[a-z0-9_+-]+")
 
 @lru_cache(maxsize=1)
 def _model():
-    model = os.environ.get("AGENT_MODEL", "langsmith:anthropic/claude-opus-5-5")
-    # Room for the model to think a little before it answers; it still answers in ~2 s.
-    return init_chat_model(model, max_tokens=400)
+    # A small, fast model: Haiku through the LLM Gateway, or the agent's own model when
+    # AGENT_MODEL calls a provider directly. REACTION_MODEL overrides both.
+    model = os.environ.get("REACTION_MODEL") or os.environ.get(
+        "AGENT_MODEL", "langsmith:anthropic/claude-haiku-5-5"
+    )
+    return init_chat_model(model, max_tokens=50)
 
 
 async def choose_reaction(context: dict) -> str | None:

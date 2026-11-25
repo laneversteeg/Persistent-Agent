@@ -152,7 +152,9 @@ haven't been tested with a live model.
 - **Watch mode:** in channels it hears every message. Set `trigger_mode="mention"` in
   `channels/slack.py` to answer only mentions.
 - **Reactions:** each message gets an emoji the agent's model picks, like the office
-  jokester would, or none. It runs alongside the reply, so it never slows it down.
+  jokester would, or none. A small, fast model picks it (Haiku by default; set
+  `REACTION_MODEL` to change it), and it runs alongside the reply, so it never slows it
+  down.
   Change the prompt in `channels/slack.py`, or pass `reactions=False` to turn them off.
   It picks standard emoji; if your workspace has custom Slack emoji, search them in
   `choose_reaction` (Slack's emoji search through Tool Gateway, connected for the
