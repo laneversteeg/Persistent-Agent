@@ -58,6 +58,10 @@ added through code review.
 
 - **Watch mode:** in channels it hears every message. Set `trigger_mode="mention"` in
   `channels/slack.py` to answer only mentions.
+- **Reactions:** each message gets an emoji a small, fast model picks (Haiku by default;
+  set `REACTION_MODEL` to change it), or none. It runs alongside the reply, so it never
+  slows it down. Change the prompt in `channels/slack.py`, or pass `reactions=False` to
+  turn them off.
 - **Continuous DMs:** messages and thread replies in a DM share one conversation. Answers post at
   the top level unless the person replies in a thread.
 - **Links:** MDA shows browser handoff and connect-app links only in Studio, so
@@ -85,7 +89,7 @@ with the conversation so far.
 | [`slack_conversation.py`](../slack_conversation.py) | Continuous DMs and browser and connect-app links in Slack. |
 | [`skills/`](../skills/) | Onboarding, goals, dreaming and the three playbooks. |
 | [`tools/`](../tools/) | Scheduling, `!clear`, schedule ownership and the Tool Gateway. |
-| [`channels/slack.py`](../channels/slack.py) | The Slack bot and its icon (`channels/assets/icon.png`, 512×512). |
+| [`channels/slack.py`](../channels/slack.py) | The Slack bot, its emoji reactions and its icon (`channels/assets/icon.png`, 512×512). |
 | [`memory.py`](../memory.py) | Personal memory, mounted only in one-on-one conversations. |
 | [`browser.py`](../browser.py) | A browser per person. |
 | [`identity.py`](../identity.py) | Who may call the deployment directly. |
