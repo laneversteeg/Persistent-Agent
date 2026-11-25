@@ -14,6 +14,7 @@ from dreaming import DREAMING
 from heartbeat import HEARTBEAT
 from middleware.per_user_schedules import PerUserSchedulesMiddleware
 from slack_conversation import install
+from tools.connect import connect_apps
 from tools.reset import clear_me
 from tools.schedules import cancel_schedule, list_schedules, schedule
 
@@ -37,6 +38,7 @@ async def agent(runtime: ManagedServerRuntime):
             list_schedules,
             cancel_schedule,
             clear_me,
+            connect_apps,
         ],
         subagents=[
             {
