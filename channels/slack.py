@@ -1,6 +1,6 @@
 """Slack in watch mode: every message starts a run; the agent replies `[quiet]` to skip.
 
-Each message that starts a run gets an emoji reaction the agent's model picks, or
+Each message that starts a run gets an emoji reaction a small, fast model picks, or
 none. It runs alongside the reply, never delaying it; MDA falls back to :eyes: if
 the model errors or takes over 5 seconds. Standard emoji only: to use your
 workspace's custom emoji, have `choose_reaction` search them (Slack's emoji search
